@@ -1,23 +1,20 @@
-import random
-from django.views.generic import TemplateView
+from django.db.models import Q
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.views import View
+from django.views.generic import TemplateView, ListView
+
+from .models import RestaurantLocation
 
 
-class HomeView(TemplateView):
-    template_name = 'home.html' 
-
-    def get_context_data(self, *args, **kwargs):
-        context = super(HomeView, self).get_context_data(*args, **kwargs)
-        num = None
-        some_list = [
-            random.randint(0, 100000000), 
-            random.randint(0, 100000000), 
-            random.randint(0, 100000000)
-        ]
-        condition_bool_item = False
-        if condition_bool_item:
-            num = random.randint(0, 100000000)
-        context = {
-            "num": num, 
-            "some_list": some_list
-        }
-        return context
+class RestaurantListView(ListView):
+    def get_queryset(self):
+        slug = self.kwargs.get("slug")
+        if slug:
+            queryset = RestaurantLocation.objects.filter(
+                    Q(category__iexact=slug) |
+                    Q(category__icontains=slug)
+                )
+        else:
+            queryset = RestaurantLocation.objects.all()
+        return queryset
